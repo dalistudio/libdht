@@ -31,16 +31,16 @@ typedef int socklen_t;
 #include "bencode.h"
 
 /*!
- * Type of DHT search.
+ * DHT的搜索类型
  */
 enum dht_search_type {
-    FIND_NODE,
-    GET_PEERS,
-    GET,
+    FIND_NODE, // 查找节点
+    GET_PEERS, // 获取对等端
+    GET, // 获取
 };
 
 /*!
- * Search node.
+ * 搜索节点
  *
  * This structure is allocated by the node for each node encountered in the
  * course of a DHT search. Elements are chained together and sorted by
@@ -68,7 +68,7 @@ struct search_node {
 struct dht_node;
 
 /*!
- * Search complete callback.
+ * 搜索完成时回调函数
  *
  * This callback is called when a DHT search completes.
  *
@@ -83,7 +83,7 @@ typedef void (*search_complete_t)(struct dht_node *n,
                                   void *opaque);
 
 /*!
- * Node output callback.
+ * 节点输出时回调函数
  *
  * User-defined callback for sending UDP datagrams to a remote node.
  *
@@ -98,7 +98,7 @@ typedef void (*node_output_t)(const unsigned char *data, size_t len,
                               void *opaque);
 
 /*!
- * Bootstrap status notification callback
+ * 引导状态通知回调函数
  *
  * User-defined callback called when the node boostrap status changes.
  * When \a ready is non-zero, the node is ready to handle new DHT searches.
@@ -111,7 +111,7 @@ typedef void (*node_output_t)(const unsigned char *data, size_t len,
 typedef void (*bootstrap_status_t)(int ready, void *opaque);
 
 /*!
- * External IP counter entry.
+ * 外部IP计数条目
  */
 struct ip_counter_entry {
     unsigned char ip[18];           /*!< external IP address in compact form */
@@ -121,7 +121,7 @@ struct ip_counter_entry {
 };
 
 /*!
- * External IP counter.
+ * 外部IP计数
  */
 struct ip_counter {
     unsigned int total;                 /*!< Total external IP address count */
@@ -135,7 +135,7 @@ struct peer_list;
 struct put_item;
 
 /*!
- * DHT node object.
+ * DHT 节点对象
  */
 struct dht_node {
     unsigned char id[20];                   /*!< DHT node identifier */
@@ -165,7 +165,7 @@ struct dht_node {
 typedef struct search *dht_search_t;
 
 /*!
- * Initialize DHT node.
+ * 初始化 DHT 节点
  *
  * Initializes a \ref dht_node structure with the given node ID \a id. If the
  * \a id parameter is NULL, the node ID will be generated randomly. To remain
@@ -192,7 +192,7 @@ int dht_node_init(struct dht_node *n, const unsigned char *id,
                   node_output_t output, void *opaque);
 
 /*!
- * Start DHT node.
+ * 开始 DHT 节点
  *
  * Starts servicing the DHT node. Bootstrap node if the routing table is empty.
  * Changing the node's ID or restoring a previous state must be done before
@@ -219,7 +219,7 @@ void dht_node_input(struct dht_node *n, const unsigned char *data, size_t len,
                     const struct sockaddr *src, socklen_t addrlen);
 
 /*!
- * Ping remote node.
+ * Ping 远程节点
  *
  * Sends a ping query to the specified host. Querying a node known by address
  * will help speed-up the bootstrap process: if the remote hosts responds, it
@@ -234,7 +234,7 @@ void dht_node_ping(struct dht_node *n, struct sockaddr *dest,
                    socklen_t addrlen);
 
 /*!
- * Get node timeout.
+ * Get 节点超时
  *
  * Returns the amount of time after which the node needs to be serviced (by
  * calling \ref dht_node_work).
@@ -245,7 +245,7 @@ void dht_node_ping(struct dht_node *n, struct sockaddr *dest,
 void dht_node_timeout(struct dht_node *n, struct timeval *tv);
 
 /*!
- * Service the node
+ * 为节点提供服务
  *
  * The user is required to call this function every so often to perform
  * maintenance work (routing table updates) on the node or make progress
@@ -257,7 +257,7 @@ void dht_node_timeout(struct dht_node *n, struct timeval *tv);
 void dht_node_work(struct dht_node *n);
 
 /*!
- * Cleanup DHT node.
+ * 清理 DHT 节点
  *
  * Cleans up the \ref dht_node and frees all ressources used by the node. All
  * the pending searches will be cancelled.
@@ -267,7 +267,7 @@ void dht_node_work(struct dht_node *n);
 void dht_node_cleanup(struct dht_node *n);
 
 /*!
- * Start a search on the DHT.
+ * 在 DHT 上开始搜索
  *
  * Start a recursive search on the DHT. There are multiple types of search
  * (\p FIND_NODE, \p GET_PEERS and \p GET), each using a different query method
@@ -309,7 +309,7 @@ int dht_node_search(struct dht_node *n, const unsigned char id[20],
 void dht_node_cancel(struct dht_node *n, dht_search_t handle);
 
 /*!
- * Dump the node's routing table.
+ * 转储节点的路由表
  *
  * Outputs the node's bucket list for debugging purpose.
  *
@@ -342,7 +342,7 @@ void dht_node_announce(struct dht_node *n, const unsigned char *info_hash,
                        int implied_port, int port);
 
 /*!
- * Store immutable data in the DHT.
+ * 将不可变数据存储在DHT中。
  *
  * Send a "put" query to the specified nodes with the given value \a val
  * to store as immutable data. Only the 8 first nodes of the \a nodes list
@@ -359,7 +359,7 @@ void dht_node_put_immutable(struct dht_node *n,
                             const struct bvalue *val);
 
 /*!
- * Store mutable data in the DHT.
+ * 在DHT中存储可变数据。
  *
  * Send a "put" query to the specified nodes with the given value \a val
  * to store as mutable data. Only the 8 first nodes of the \a nodes list
@@ -384,7 +384,7 @@ void dht_node_put_mutable(struct dht_node *n,
                           int seq, const struct bvalue *val);
 
 /*!
- * Save node state.
+ * 保存节点状态。
  *
  * Saves the state of a node into a dictionnary value ready to be serialized to
  * a file. This function saves the node ID an the content of the node's routing
@@ -398,7 +398,7 @@ void dht_node_put_mutable(struct dht_node *n,
 struct bvalue *dht_node_save(const struct dht_node *n);
 
 /*!
- * Restore node state.
+ * 还原节点状态。
  *
  * Restores the node to a previous state. The result of calling this function
  * after the node has already started with \ref dht_node_start is undefined.
@@ -410,7 +410,7 @@ struct bvalue *dht_node_save(const struct dht_node *n);
 int dht_node_restore(const struct bvalue *dict, struct dht_node *n);
 
 /*!
- * Set bootstrap status notification callback.
+ * 设置引导状态通知回调。
  *
  * Register a callback that will be called when the node's bootstrap status
  * changes. It allows the user to be notified when the node is ready to issue

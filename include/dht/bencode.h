@@ -24,45 +24,45 @@ extern "C" {
 #include <stdio.h>
 
 /*!
- * bencoding value.
+ * B编码的值
  *
- * A bencoding value representation capable of holding one of 4 types:
- * "integer", "string", "list", and "dictionary".
+ * 一种B编码值表示形式，能够容纳四种类型之一：
+ * "integer", "string", "list", 和 "dictionary".
  */
 struct bvalue {
     /*!
-     * Type of the value contained.
+     * 所包含值的类型。
      */
     enum {
-        BVALUE_INTEGER,
-        BVALUE_STRING,
-        BVALUE_LIST,
-        BVALUE_DICTIONARY,
+        BVALUE_INTEGER, // 整数
+        BVALUE_STRING, // 字符串
+        BVALUE_LIST, // 列表
+        BVALUE_DICTIONARY, // 字典
     } type;
     /*!
-     * Type-specific data
+     * 特定类型数据
      */
     union {
         /*!
-         * Integer value
+         * 整数值
          */
         long long int i;
         /*!
-         * String value
+         * 字符串值
          */
         struct {
             unsigned char *bytes;   /*!< string pointer (zero-terminated) */
             size_t len;             /*!< length of the string */
         } s;
         /*!
-         * List value
+         * 列表值
          */
         struct {
             struct bvalue **array;  /*!< array of elements */
             size_t len;             /*!< number of elements */
         } l;
         /*!
-         * Dictionary value
+         * 字典值
          */
         struct {
             char **key;             /*!< array of keys (in lexicographical order) */
@@ -73,32 +73,32 @@ struct bvalue {
 };
 
 /*!
- * Allocate a dictionary value.
+ * 分配字典值
  *
- * Builds a new empty dictionary value.
+ * 生成新的空字典值
  *
  * \returns Pointer to newly allocated value, or NULL on allocation failure.
  */
 struct bvalue *bvalue_new_dict(void);
 /*!
- * Allocate a list value.
+ * 分配列表值
  *
- * Builds a new empty list value.
+ * 生成新的空列表值
  *
  * \returns Pointer to newly allocated value, or NULL on allocation failure.
  */
 struct bvalue *bvalue_new_list(void);
 /*!
- * Allocate an integer value.
+ * 分配一个整数值
  *
- * Builds a new integer value and set it to \a i.
+ * 生成一个新的整数值并将其设置为i
  *
  * \param i Initial integer value.
  * \returns Pointer to newly allocated value, or NULL on allocation failure.
  */
 struct bvalue *bvalue_new_integer(long long int i);
 /*!
- * Allocate a string value.
+ * 分配字符串值
  *
  * Builds a new string value initially set to \a s.
  * This function allocates its own copy of \a s, so the memory can be reused
@@ -110,7 +110,7 @@ struct bvalue *bvalue_new_integer(long long int i);
  */
 struct bvalue *bvalue_new_string(const unsigned char *s, size_t len);
 /*!
- * Deep copy bencoding value.
+ * 深度拷贝B编码值
  *
  * Recursively copy \a val an all of it's children.
  *
@@ -127,7 +127,7 @@ struct bvalue *bvalue_copy(const struct bvalue *val);
 void bvalue_free(struct bvalue *val);
 
 /*!
- * Append value to a list.
+ * 将值附加到列表。
  *
  * Add \a val to the end of the list value \a list. \a list must be of
  * type \a BVALUE_LIST.
@@ -138,7 +138,7 @@ void bvalue_free(struct bvalue *val);
  */
 int bvalue_list_append(struct bvalue *list, struct bvalue *val);
 /*!
- * Add a key-value pair to a dictionary.
+ * 向字典中添加键值对
  *
  * Set key \a key to value \a val in dictionary value \a dict. \a dict must
  * be of type \a BVALUE_DICTIONARY. If the key is already set in \a dict, the
@@ -152,7 +152,7 @@ int bvalue_list_append(struct bvalue *list, struct bvalue *val);
 int bvalue_dict_set(struct bvalue *dict, const char *key, struct bvalue *val);
 
 /*!
- * Get dictionary value.
+ * 获取字典值
  *
  * Lookup a value by key in a dictionary.
  *
@@ -163,7 +163,7 @@ int bvalue_dict_set(struct bvalue *dict, const char *key, struct bvalue *val);
  */
 const struct bvalue *bvalue_dict_get(const struct bvalue *dict, const char *key);
 /*!
- * Get list value.
+ * 获取列表值
  *
  * Get a value by position in a list.
  *
@@ -174,7 +174,7 @@ const struct bvalue *bvalue_dict_get(const struct bvalue *dict, const char *key)
  */
 const struct bvalue *bvalue_list_get(const struct bvalue *list, size_t pos);
 /*!
- * Get string value.
+ * 获取字符串值
  *
  * Get C string pointer from a value of type \a BVALUE_STRING. The return value
  * is a pointer to the value's own internal storage. The returned string is
@@ -190,7 +190,7 @@ const struct bvalue *bvalue_list_get(const struct bvalue *list, size_t pos);
  */
 const unsigned char *bvalue_string(const struct bvalue *val, size_t *len);
 /*!
- * Get integer (int) value.
+ * 获取整数(int)的值
  *
  * Returns the integer value of a value of type \a BVALUE_INTEGER.
  *
@@ -201,7 +201,7 @@ const unsigned char *bvalue_string(const struct bvalue *val, size_t *len);
  */
 int bvalue_integer(const struct bvalue *val, int *intval);
 /*!
- * Get integer (long int) value.
+ * 获取整数(long int)的值
  *
  * Returns the integer value of a value of type \a BVALUE_INTEGER.
  *
@@ -212,7 +212,7 @@ int bvalue_integer(const struct bvalue *val, int *intval);
  */
 int bvalue_integer_l(const struct bvalue *val, long int *intval);
 /*!
- * Get integer (long long int) value.
+ * 获取整数(long long int)的值
  *
  * Returns the integer value of a value of type \a BVALUE_INTEGER.
  *
@@ -224,14 +224,14 @@ int bvalue_integer_l(const struct bvalue *val, long int *intval);
 int bvalue_integer_ll(const struct bvalue *val, long long int *intval);
 
 /*!
- * Parse bencoded file.
+ * 分析B编码文件
  *
  * \param stream Stream to parse (FILE pointer).
  * \returns Parsed value or NULL if parsing failed.
  */
 struct bvalue *bdecode_file(FILE *stream);
 /*!
- * bencode value to file.
+ * B编码值到文件
  *
  * \param val Value to encode.
  * \param stream Stream to write encoded data to.
@@ -240,7 +240,7 @@ struct bvalue *bdecode_file(FILE *stream);
 int bencode_file(const struct bvalue *val, FILE *stream);
 
 /*!
- * Parse bencoded string buffer.
+ * 分析B编码字符串缓冲
  *
  * \param buf string buffer to parse.
  * \param len Length to parse.
@@ -248,7 +248,7 @@ int bencode_file(const struct bvalue *val, FILE *stream);
  */
 struct bvalue *bdecode_buf(const unsigned char *buf, size_t len);
 /*!
- * bencode value to a string buffer.
+ * B编码值到一个字符串缓冲
  *
  * \param val Value to encode.
  * \param buf Memory buffer to write encoded data to.
@@ -258,7 +258,7 @@ struct bvalue *bdecode_buf(const unsigned char *buf, size_t len);
  */
 int bencode_buf(const struct bvalue *val, unsigned char *buf, size_t len);
 /*!
- * Allocate and bencode value to a string buffer.
+ * 分配和B编码值到一个字符串缓冲
  *
  * This function is analog to \ref bencode_buf, except it allocates a buffer
  * large enough to hold the output. The buffered returned in \a bufp should

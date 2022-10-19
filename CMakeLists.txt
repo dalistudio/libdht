@@ -3,8 +3,8 @@ cmake_minimum_required(VERSION 3.10)
 project(dht)
 
 option(ENABLE_TEST_COVERAGE "Enable code coverage" OFF)
-option(ENABLE_TESTS "Enable integration and unit tests" OFF)
-option(ENABLE_LUA "Build lua bindings" OFF)
+option(ENABLE_TESTS "Enable integration and unit tests" ON)
+option(ENABLE_LUA "Build lua bindings" ON)
 option(ENABLE_DOC "Build documentation" ON)
 
 if(ENABLE_TEST_COVERAGE)

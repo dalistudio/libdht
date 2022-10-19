@@ -7,11 +7,9 @@
 
 /**
  * \file put.h
- * \brief Get or put mutable/immutable items.
+ * \brief 获取或放置可变/不可变的项。
  *
- * This file contains high-level definitions for storing and retrieving
- * immutable and mutable data from the DHT using the BEP-44 DHT protocol
- * extension.
+ * 该文件包含使用BEP-44 DHT协议扩展从DHT存储和检索不可变和可变数据的高级定义。
  */
 
 #ifndef DHT_PUT_H_
@@ -24,15 +22,12 @@ extern "C" {
 #include <dht/node.h>
 
 /*!
- * Get complete callback.
+ * Get 完成时回调函数
  *
- * This callback is called when an immutable or mutable DHT get operation
- * completes.
+ * 当不可变或可变的DHT执行 get 操作完成时，将调用此回调。
  *
- * \param val Value retrieved from the DHT or NULL if none was found or if
- *            the search was cancelled.
- * \param opaque User data pointer passed to \ref dht_get_immutable or
- *               \ref dht_get_mutable.
+ * \param val 从DHT检索到的值，如果未找到或搜索被取消，则返回NULL。
+ * \param opaque 传递给dht_get_immutable或dht_get_ mutable的用户数据指针。
  */
 typedef void (*get_callback)(const struct bvalue *val, void *opaque);
 
@@ -48,7 +43,7 @@ typedef void (*get_callback)(const struct bvalue *val, void *opaque);
 typedef void (*put_immutable_callback)(int result, void *opaque);
 
 /*!
- * Put mutable callback
+ * Put 不可变的回调函数
  *
  * This callback is called when a mutable DHT put operation is about to
  * complete, just before sending put queries to the nodes selected to store
@@ -70,7 +65,7 @@ typedef void (*put_immutable_callback)(int result, void *opaque);
 typedef void (*put_mutable_callback)(struct bvalue **val, void *opaque);
 
 /*!
- * Get an immutable value from the DHT.
+ * 从DHT中获取一个不可变的值。
  *
  * Start a recursive search for an immutable value matching the given
  * hash on the DHT.
@@ -92,7 +87,7 @@ int dht_get_immutable(struct dht_node *node, const unsigned char hash[20],
                       dht_search_t *handle);
 
 /*!
- * Put an immutable value to the DHT.
+ * 将一个不可变的值放入DHT。
  *
  * Start a recursive search for nodes candidates for storing the specified
  * value on the DHT. Once the search completes, the specified completion
@@ -118,7 +113,7 @@ int dht_put_immutable(struct dht_node *node, const struct bvalue *v,
                       dht_search_t *handle, unsigned char hash[20]);
 
 /*!
- * Get a mutable value from the DHT.
+ * 从DHT获取可变值。
  *
  * Start a recursive search for an mutable value matching the given
  * public key and salt on the DHT.
@@ -144,7 +139,7 @@ int dht_get_mutable(struct dht_node *node,
                     dht_search_t *handle);
 
 /*!
- * Put an mutable value to the DHT.
+ * 给DHT加一个可变值。
  *
  * Start a recursive search for nodes candidates for storing a mutable
  * value for the specified public key and salt on the DHT.

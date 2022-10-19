@@ -7,10 +7,9 @@
 
 /**
  * \file peers.h
- * \brief Announce or search peers for an infohash.
+ * \brief 发布(Announce)或者搜索对等端的种子特征码(infohash)
  *
- * This contains defines high-level definitions for searching or announcing
- * peers.
+ * 它包含用于搜索或发布对等端的高级定义。
  */
 
 #ifndef DHT_PEERS_H_
@@ -19,13 +18,12 @@
 #include <stdlib.h>
 
 /*!
- * Peer search complete callback.
+ * 对等端搜索完成时回调函数
  *
- * This callback is called when a search for peers completes.
+ * 当对等端搜索完成时，将调用此回调函数。
  *
- * \param info_hash The target infohash of the search.
- * \param peers Array of peer addresses, or NULL if no peers have been found
- *              or the search was cancelled.
+ * \param info_hash 搜索的目标种子特征码(infohash)。
+ * \param peers 对等端的地址数组，如果找不到对等端地址或搜索被取消，则为 NULL。
  * \param count Length of the \a peers array.
  * \param opaque User data pointer passed to \ref dht_get_peers or
  *               \ref dht_announce_peer.
@@ -36,7 +34,7 @@ typedef void (*get_peers_callback)(const unsigned char info_hash[20],
                                    void *opaque);
 
 /*!
- * Search the DHT for peers for an infohash.
+ * 在DHT中搜索对等端的种子特征码(infohash)
  *
  * Start a recursive search for peers for the given infohash on the DHT.
  * The returned handle can be used to cancel the pending search with
@@ -56,7 +54,7 @@ int dht_get_peers(struct dht_node *node, const unsigned char info_hash[20],
                   dht_search_t *handle);
 
 /*!
- * Announce peer for an infohash.
+ * 发布一个种子特征码到对等端
  *
  * Add the IP address of the current node and the given port number to the list
  * of peers for the given infohash. This is traditionally used to announce that
