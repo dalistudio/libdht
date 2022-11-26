@@ -12,7 +12,7 @@
 #include <stdint.h>
 
 /*
- * Stolen from:
+ * 来源：
  * https://stackoverflow.com/questions/10905892/equivalent-of-gettimeday-for-windows
  */
 int gettimeofday(struct timeval * tp, struct timezone * tzp)

@@ -113,7 +113,7 @@ static const uint32_t crc32c_table[256] = {
  * Abstract: The main routine
  * 
  --*/
-
+// CRC32校验
 uint32_t crc32c(const unsigned char *data, size_t len)
 {
     uint32_t crc = 0xffffffff;

@@ -12,6 +12,7 @@
 
 #include <dht/bencode.h>
 
+// 释放B的值
 void bvalue_free(struct bvalue *val)
 {
     size_t i;
@@ -40,6 +41,7 @@ void bvalue_free(struct bvalue *val)
     free(val);
 }
 
+// 从字典中获取B的值
 const struct bvalue *bvalue_dict_get(const struct bvalue *dict, const char *key)
 {
     size_t i;
@@ -55,6 +57,7 @@ const struct bvalue *bvalue_dict_get(const struct bvalue *dict, const char *key)
     return NULL;
 }
 
+// 从列表中获取B的值
 const struct bvalue *bvalue_list_get(const struct bvalue *list, size_t pos)
 {
     if (list->type != BVALUE_LIST)
@@ -66,6 +69,7 @@ const struct bvalue *bvalue_list_get(const struct bvalue *list, size_t pos)
     return list->l.array[pos];
 }
 
+// B值的字符串
 const unsigned char *bvalue_string(const struct bvalue *val, size_t *len)
 {
     if (val->type != BVALUE_STRING)
@@ -77,6 +81,7 @@ const unsigned char *bvalue_string(const struct bvalue *val, size_t *len)
     return val->s.bytes;
 }
 
+// B值的整数
 int bvalue_integer(const struct bvalue *val, int *intval)
 {
     if (val->type != BVALUE_INTEGER)
@@ -90,6 +95,7 @@ int bvalue_integer(const struct bvalue *val, int *intval)
     return 0;
 }
 
+// B值的长整数
 int bvalue_integer_l(const struct bvalue *val, long int *intval)
 {
     if (val->type != BVALUE_INTEGER)
@@ -103,6 +109,7 @@ int bvalue_integer_l(const struct bvalue *val, long int *intval)
     return 0;
 }
 
+// B值的长长整数
 int bvalue_integer_ll(const struct bvalue *val, long long int *intval)
 {
     if (val->type != BVALUE_INTEGER)
@@ -119,6 +126,7 @@ struct stream_ops {
     int (*put_char)(int, void *);
 };
 
+// 从流中读取
 static size_t stream_read(void *buf, size_t len, void *stream,
                           const struct stream_ops *ops)
 {
@@ -136,6 +144,7 @@ static size_t stream_read(void *buf, size_t len, void *stream,
     return l;
 }
 
+// 写入流中
 static size_t stream_write(const void *buf, size_t len, void *stream,
                            const struct stream_ops *ops)
 {
@@ -151,6 +160,7 @@ static size_t stream_write(const void *buf, size_t len, void *stream,
     return l;
 }
 
+// B编码
 static struct bvalue *bdecode(void *stream, const struct stream_ops *ops)
 {
     struct bvalue *ret;
@@ -162,7 +172,7 @@ static struct bvalue *bdecode(void *stream, const struct stream_ops *ops)
         return NULL;
 
     switch ((c = ops->get_char(stream))) {
-    case 'i':
+    case 'i': // 整数
         {
             int v = 0;
             int neg = 0;
@@ -182,7 +192,7 @@ static struct bvalue *bdecode(void *stream, const struct stream_ops *ops)
             ret->i = neg ? -v : v;
         }
         break;
-    case 'l':
+    case 'l': // 列表
         {
             ret->type = BVALUE_LIST;
             ret->l.array = NULL;
@@ -208,7 +218,7 @@ static struct bvalue *bdecode(void *stream, const struct stream_ops *ops)
             ops->get_char(stream); /* Consume 'e' */
         }
         break;
-    case 'd':
+    case 'd': // 字典
         {
             ret->type = BVALUE_DICTIONARY;
             ret->d.key = NULL;
@@ -300,6 +310,7 @@ static struct bvalue *bdecode(void *stream, const struct stream_ops *ops)
     return ret;
 }
 
+// 新字典的值
 struct bvalue *bvalue_new_dict(void)
 {
     struct bvalue *v = malloc(sizeof(struct bvalue));
@@ -315,6 +326,7 @@ struct bvalue *bvalue_new_dict(void)
     return v;
 }
 
+// 新列表的值
 struct bvalue *bvalue_new_list(void)
 {
     struct bvalue *v = malloc(sizeof(struct bvalue));
@@ -329,6 +341,7 @@ struct bvalue *bvalue_new_list(void)
     return v;
 }
 
+// 新整数的值
 struct bvalue *bvalue_new_integer(long long int i)
 {
     struct bvalue *v = malloc(sizeof(struct bvalue));
@@ -342,6 +355,7 @@ struct bvalue *bvalue_new_integer(long long int i)
     return v;
 }
 
+// 新字符串的值
 struct bvalue *bvalue_new_string(const unsigned char *s, size_t len)
 {
     struct bvalue *v = malloc(sizeof(struct bvalue));
@@ -358,6 +372,7 @@ struct bvalue *bvalue_new_string(const unsigned char *s, size_t len)
     return v;
 }
 
+// 附加B值到列表
 int bvalue_list_append(struct bvalue *list, struct bvalue *val)
 {
     void *tmp;
@@ -374,6 +389,7 @@ int bvalue_list_append(struct bvalue *list, struct bvalue *val)
     return 0;
 }
 
+// 设置B值到字典
 int bvalue_dict_set(struct bvalue *dict, const char *key, struct bvalue *val)
 {
     void *tmp;
@@ -412,6 +428,7 @@ int bvalue_dict_set(struct bvalue *dict, const char *key, struct bvalue *val)
     return 0;
 }
 
+// 放置整数
 static int put_int(long long int val, void *stream,
                    const struct stream_ops *ops)
 {
@@ -441,6 +458,7 @@ static int put_int(long long int val, void *stream,
     return ret;
 }
 
+// B编码
 static int bencode(const struct bvalue *val, void *stream,
                    const struct stream_ops *ops)
 {
@@ -448,7 +466,7 @@ static int bencode(const struct bvalue *val, void *stream,
     int rc, ret = 0;
 
     switch (val->type) {
-    case BVALUE_INTEGER:
+    case BVALUE_INTEGER: // 整数
         if (ops->put_char('i', stream) < 0)
             return -1;
         ret++;
@@ -459,7 +477,7 @@ static int bencode(const struct bvalue *val, void *stream,
             return -1;
         ret++;
         break;
-    case BVALUE_STRING:
+    case BVALUE_STRING: // 字符串
         if ((rc = put_int((int)val->s.len, stream, ops)) < 0)
             return -1;
         ret += rc;
@@ -470,7 +488,7 @@ static int bencode(const struct bvalue *val, void *stream,
             return -1;
         ret += val->s.len;
         break;
-    case BVALUE_LIST:
+    case BVALUE_LIST: // 列表
         if (ops->put_char('l', stream) < 0)
             return -1;
         ret++;
@@ -483,7 +501,7 @@ static int bencode(const struct bvalue *val, void *stream,
             return -1;
         ret++;
         break;
-    case BVALUE_DICTIONARY:
+    case BVALUE_DICTIONARY: // 字典
         if (ops->put_char('d', stream) < 0)
             return -1;
         ret++;
@@ -533,6 +551,7 @@ static const struct stream_ops file_ops = {
     .put_char = (void *)fputc,
 };
 
+// B编码文件
 struct bvalue *bdecode_file(FILE *f)
 {
     return bdecode(f, &file_ops);
@@ -600,6 +619,7 @@ static const struct stream_ops mem_ops = {
     .put_char = mem_put_char,
 };
 
+// B编码的缓存区
 struct bvalue *bdecode_buf(const unsigned char *buf, size_t len)
 {
     struct bvalue *ret;
@@ -627,6 +647,7 @@ int bencode_buf(const struct bvalue *val, unsigned char *buf, size_t len)
     return bencode(val, &stream, &mem_ops);
 }
 
+// 分配B编码的缓冲区
 int bencode_buf_alloc(const struct bvalue *val, unsigned char **bufp)
 {
     struct mem_stream stream;
@@ -648,26 +669,27 @@ int bencode_buf_alloc(const struct bvalue *val, unsigned char **bufp)
     return ret;
 }
 
+// 复制B值
 struct bvalue *bvalue_copy(const struct bvalue *val)
 {
     struct bvalue *res = NULL;
     size_t i;
 
     switch (val->type) {
-    case BVALUE_INTEGER:
+    case BVALUE_INTEGER: // 整数
         res = bvalue_new_integer(val->i);
         break;
-    case BVALUE_STRING:
+    case BVALUE_STRING: // 字符串
         res = bvalue_new_string(val->s.bytes, val->s.len);
         break;
-    case BVALUE_LIST:
+    case BVALUE_LIST: // 列表
         res = bvalue_new_list();
         res->l.array = malloc(val->l.len * sizeof(struct bvalue *));
         for (i = 0; i < val->l.len; i++)
             res->l.array[i] = bvalue_copy(val->l.array[i]);
         res->l.len = i;
         break;
-    case BVALUE_DICTIONARY:
+    case BVALUE_DICTIONARY: // 字典
         res = bvalue_new_dict();
         res->d.key = malloc(val->d.len * sizeof(char *));
         res->d.val = malloc(val->d.len * sizeof(struct bvalue *));

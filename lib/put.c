@@ -15,13 +15,15 @@
 #include "sha1.h"
 #include "ed25519/ed25519.h"
 
+// 获取不变的上下文结构
 struct get_immutable_context
 {
-    unsigned char target[20];
-    get_callback get_cb;
-    void *opaque;
+    unsigned char target[20]; // 目标ID
+    get_callback get_cb; // get回调函数
+    void *opaque; // 
 };
 
+// 计算B编码的哈希值
 static int hash_value(const struct bvalue *val,
                       unsigned char hash[20])
 {
@@ -34,11 +36,12 @@ static int hash_value(const struct bvalue *val,
         return -1;
     }
 
-    sha1_ret(buf, rc, hash);
+    sha1_ret(buf, rc, hash); // SHA1散列
 
     return 0;
 }
 
+// 获取不可变值完成
 static void get_immutable_complete(struct dht_node *n,
                                    const struct search_node *nodes,
                                    void *opaque)
@@ -65,6 +68,7 @@ static void get_immutable_complete(struct dht_node *n,
     free(ctx);
 }
 
+// 获取不可变值
 int dht_get_immutable(struct dht_node *node, const unsigned char hash[20],
                       get_callback callback, void *opaque,
                       dht_search_t *handle)
@@ -80,6 +84,7 @@ int dht_get_immutable(struct dht_node *node, const unsigned char hash[20],
     ctx->get_cb = callback;
     ctx->opaque = opaque;
 
+    // 搜索节点
     if (dht_node_search(node, hash, GET, get_immutable_complete, ctx, &h)) {
         free(ctx);
         return -1;
@@ -91,6 +96,7 @@ int dht_get_immutable(struct dht_node *node, const unsigned char hash[20],
     return 0;
 }
 
+// 哈希公钥
 static int hash_pubkey(const unsigned char pubkey[32],
                        const unsigned char *salt, size_t salt_len,
                        unsigned char hash[20])
@@ -108,6 +114,7 @@ static int hash_pubkey(const unsigned char pubkey[32],
     return 0;
 }
 
+// 验证签名
 static int verify_signature(const struct bvalue *val,
                             const unsigned char *salt, size_t salt_len,
                             int seq,
@@ -135,21 +142,24 @@ static int verify_signature(const struct bvalue *val,
         return -1;
     }
 
+    // 验证
     ret = ed25519_verify(signature, buf + 1, rc - 2, k);
     bvalue_free(dict);
 
     return ret;
 }
 
+// 获取可变值上下文结构
 struct get_mutable_context
 {
-    unsigned char target[20];
-    unsigned char salt[64];
-    size_t salt_len;
-    get_callback get_cb;
+    unsigned char target[20]; // 目标ID
+    unsigned char salt[64]; // 
+    size_t salt_len; // 
+    get_callback get_cb; // get回调函数
     void *opaque;
 };
 
+// 获得可变值完成
 static void get_mutable_complete(struct dht_node *n,
                                  const struct search_node *nodes,
                                  void *opaque)
@@ -181,6 +191,7 @@ static void get_mutable_complete(struct dht_node *n,
     free(ctx);
 }
 
+// 获得可变值
 int dht_get_mutable(struct dht_node *node,
                     const unsigned char pubkey[32],
                     const unsigned char *salt, size_t salt_len,
@@ -215,6 +226,7 @@ int dht_get_mutable(struct dht_node *node,
     return 0;
 }
 
+// 放置不可变值的上下文结构
 struct put_immutable_context
 {
     struct bvalue *val;
@@ -222,6 +234,7 @@ struct put_immutable_context
     void *opaque;
 };
 
+// 放置不可遍值完成
 static void put_immutable_complete(struct dht_node *n,
                                    const struct search_node *nodes,
                                    void *opaque)
@@ -241,6 +254,7 @@ static void put_immutable_complete(struct dht_node *n,
     free(ctx);
 }
 
+// 放置不可变值
 int dht_put_immutable(struct dht_node *node, const struct bvalue *v,
                       put_immutable_callback callback, void *opaque,
                       dht_search_t *handle, unsigned char hash[20])
@@ -270,6 +284,7 @@ int dht_put_immutable(struct dht_node *node, const struct bvalue *v,
     return 0;
 }
 
+// 放置可变值的上下文结构
 struct put_mutable_context
 {
     unsigned char target[20];
@@ -281,6 +296,7 @@ struct put_mutable_context
     void *opaque;
 };
 
+// 签名的值
 static int sign_value(const struct bvalue *val,
                       const unsigned char *salt, size_t salt_len,
                       int seq,
@@ -318,6 +334,7 @@ static int sign_value(const struct bvalue *val,
     return 0;
 }
 
+// 放置可变值完成
 static void put_mutable_complete(struct dht_node *n,
                                  const struct search_node *nodes,
                                  void *opaque)
@@ -372,6 +389,7 @@ static void put_mutable_complete(struct dht_node *n,
     free(ctx);
 }
 
+// 放置可变值
 int dht_put_mutable(struct dht_node *node,
                     const unsigned char secret[64],
                     const unsigned char pubkey[32],

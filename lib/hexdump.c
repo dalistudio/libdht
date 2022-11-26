@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <ctype.h>
 
+// 转存十六进制数
 void hexdump(const unsigned char *buf, size_t len, unsigned int indent,
              int (*print)(const char *fmt, ...))
 {

@@ -12,6 +12,7 @@
 
 #include <dht/utils.h>
 
+// 数组转字符串
 const char *hex(const unsigned char id[20])
 {
     static char buf[41];
@@ -27,6 +28,7 @@ const char *hex(const unsigned char id[20])
     return buf;
 }
 
+// 字符串转数组
 int from_hex(const char *s, unsigned char id[20])
 {
     int i;
@@ -57,6 +59,7 @@ int from_hex(const char *s, unsigned char id[20])
     return 0;
 }
 
+// 比较地址
 int sockaddr_cmp(const struct sockaddr *s1, const struct sockaddr *s2)
 {
     int cmp = s2->sa_family - s1->sa_family;
@@ -103,6 +106,7 @@ int sockaddr_cmp(const struct sockaddr *s1, const struct sockaddr *s2)
     return 0;
 }
 
+// 将地址转换为字符串
 const char *sockaddr_fmt(const struct sockaddr *sa, socklen_t addrlen)
 {
     static char ret[INET6_ADDRSTRLEN + 10];
@@ -112,7 +116,7 @@ const char *sockaddr_fmt(const struct sockaddr *sa, socklen_t addrlen)
         return NULL;
 
     switch (sa->sa_family) {
-    case AF_INET:
+    case AF_INET: // IPv4
         {
             const struct sockaddr_in *sin = (struct sockaddr_in *)sa;
 
@@ -123,7 +127,7 @@ const char *sockaddr_fmt(const struct sockaddr *sa, socklen_t addrlen)
             snprintf(ret, sizeof(ret), "%s:%d", buf, ntohs(sin->sin_port));
         }
         break;
-    case AF_INET6:
+    case AF_INET6: // IPv6
         {
             const struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)sa;
 
@@ -141,18 +145,19 @@ const char *sockaddr_fmt(const struct sockaddr *sa, socklen_t addrlen)
     return ret;
 }
 
+// 压缩地址
 const char *compactaddr_fmt(const unsigned char *ip, size_t len)
 {
     static char ret[INET6_ADDRSTRLEN + 10];
     char buf[INET6_ADDRSTRLEN];
 
     switch (len) {
-    case 6:
+    case 6: // IPv4
         inet_ntop(AF_INET, ip, buf, sizeof(buf));
         snprintf(ret, sizeof(ret), "%s:%d", buf,
                  ntohs(*(unsigned short *)(ip + 4)));
         break;
-    case 18:
+    case 18: // IPv6
         inet_ntop(AF_INET6, ip, buf, sizeof(buf));
         snprintf(ret, sizeof(ret), "[%s]:%d", buf,
                  ntohs(*(unsigned short *)(ip + 16)));

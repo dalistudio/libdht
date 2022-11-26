@@ -8,7 +8,9 @@
 #include <string.h>
 
 #include "hmac.h"
+// 使用SHA1设计HMAC算法
 
+// 初始化 HMAC
 void hmac_init(struct hmac_context *ctx,
                const unsigned char *secret, size_t secret_len)
 {
@@ -37,12 +39,14 @@ void hmac_init(struct hmac_context *ctx,
     sha1_update_ret(&ctx->h, tmp, sizeof(tmp));
 }
 
+// 更新 HMAC
 void hmac_update(struct hmac_context *ctx, const unsigned char *input,
                  size_t len)
 {
     sha1_update_ret(&ctx->h, input, len);
 }
 
+// 完成 HMACs
 void hmac_finish(struct hmac_context *ctx, unsigned char output[20])
 {
     sha1_context h;
@@ -62,6 +66,7 @@ void hmac_finish(struct hmac_context *ctx, unsigned char output[20])
     sha1_finish_ret(&h, output);
 }
 
+// 释放 HMAC
 void hmac_free(struct hmac_context *ctx)
 {
     memset(&ctx->k, 0, 64);

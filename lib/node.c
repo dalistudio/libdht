@@ -33,6 +33,7 @@ static
 #if defined(__GNUC__)
 __attribute__ ((format (printf, 1, 2)))
 #endif
+// 调试打印输出
 int debug_printf(const char *format, ...)
 {
     va_list ap;
@@ -51,6 +52,7 @@ int debug_printf(const char *format, ...)
 #define TRACE(x) do { if (0) debug_printf x; } while (0)
 #endif
 
+// 发送查询
 static void send_query(struct dht_node *n, const char *method, uint16_t tid,
                        struct bvalue *arguments,
                        const struct sockaddr *dest, socklen_t addrlen)
@@ -157,6 +159,7 @@ static struct bvalue *bvalue_new_compact(const struct sockaddr *addr,
 }
 
 #ifndef TESTING
+// 发送响应
 static void send_response(struct dht_node *n,
                           const unsigned char *tid, size_t tid_len,
                           struct bvalue *ret,
@@ -167,21 +170,21 @@ static void send_response(struct dht_node *n,
     struct bvalue *v;
     int rc;
 
-    response = bvalue_new_dict();
-    v = bvalue_new_string(tid, tid_len);
-    bvalue_dict_set(response, "t", v);
+    response = bvalue_new_dict(); // 新建B编码字典
+    v = bvalue_new_string(tid, tid_len); // 新建B编码字符串
+    bvalue_dict_set(response, "t", v); // 设置"t"字典值
 
-    v = bvalue_new_string((unsigned char *)"r", 1);
-    bvalue_dict_set(response, "y", v);
+    v = bvalue_new_string((unsigned char *)"r", 1); // 新建B编码字符串
+    bvalue_dict_set(response, "y", v); // 设置"y"字典值
 
     v = bvalue_new_compact(dest, addrlen);
     if (v)
-        bvalue_dict_set(response, "ip", v);
+        bvalue_dict_set(response, "ip", v); // 设置"ip"字典值
 
     if (!ret)
-        ret = bvalue_new_dict();
-    v = bvalue_new_string(n->id, 20);
-    bvalue_dict_set(ret, "id", v);
+        ret = bvalue_new_dict(); // 新建B编码字典
+    v = bvalue_new_string(n->id, 20); // 新建B编码字符串
+    bvalue_dict_set(ret, "id", v); // 设置"id"字典值
     bvalue_dict_set(response, "r", ret);
 
     rc = bencode_buf(response, buf, sizeof(buf));
@@ -196,6 +199,7 @@ static void send_response(struct dht_node *n,
     bvalue_free(response);
 }
 
+// 发送错误
 static void send_error(struct dht_node *n,
                        const unsigned char *tid, size_t tid_len,
                        int error_code, const char *error_msg,
@@ -207,25 +211,25 @@ static void send_error(struct dht_node *n,
     struct bvalue *v;
     int rc;
 
-    response = bvalue_new_dict();
+    response = bvalue_new_dict(); // 新建B编码字典
 
     if (tid) {
         v = bvalue_new_string(tid, tid_len);
-        bvalue_dict_set(response, "t", v);
+        bvalue_dict_set(response, "t", v); // 设置"t"字典值
     }
 
     v = bvalue_new_string((unsigned char *)"e", 1);
-    bvalue_dict_set(response, "y", v);
+    bvalue_dict_set(response, "y", v); // 设置"y"字典值
 
     v = bvalue_new_compact(dest, addrlen);
-    bvalue_dict_set(response, "ip", v);
+    bvalue_dict_set(response, "ip", v); // 设置"ip"字典值
 
     error = bvalue_new_list();
     v = bvalue_new_integer(error_code);
     bvalue_list_append(error, v);
     v = bvalue_new_string((unsigned char *)error_msg, strlen(error_msg));
     bvalue_list_append(error, v);
-    bvalue_dict_set(response, "e", error);
+    bvalue_dict_set(response, "e", error); // 设置"e"字典值
 
     rc = bencode_buf(response, buf, sizeof(buf));
     if (rc < 0) {
@@ -240,15 +244,17 @@ static void send_error(struct dht_node *n,
 }
 #endif
 
+// 计算节点间距离
 static void distance(const unsigned char id1[20], const unsigned char id2[20],
                      unsigned char ret[20])
 {
     size_t i;
 
     for (i = 0; i < 20; i++)
-        ret[i] = id1[i] ^ id2[i];
+        ret[i] = id1[i] ^ id2[i]; // XOR异或
 }
 
+// 获得最近的节点
 static int get_closest(struct dht_node *n, const unsigned char *id,
                        struct bucket_entry *nodes,
                        size_t sz)
@@ -292,6 +298,7 @@ static int get_closest(struct dht_node *n, const unsigned char *id,
     return cnt;
 }
 
+// 添加搜索节点
 static void add_search_node(struct search *s, const unsigned char *id,
                             const struct sockaddr *addr, socklen_t addrlen)
 {
@@ -304,7 +311,7 @@ static void add_search_node(struct search *s, const unsigned char *id,
         unsigned char d2[20];
         int r;
 
-        distance((*pn)->id, s->id, d2);
+        distance((*pn)->id, s->id, d2); // 计算节点间距离
         r = memcmp(d1, d2, 20);
         if (r == 0)
             return; /* We already have this one, skip */
@@ -338,6 +345,7 @@ static void add_search_node(struct search *s, const unsigned char *id,
     s->node_count++;
 }
 
+// 释放搜索节点内存空间
 static void search_node_free(struct search_node *sn)
 {
     if (sn->token)
@@ -349,6 +357,7 @@ static void search_node_free(struct search_node *sn)
     free(sn);
 }
 
+// 搜索完成时
 static void search_complete(struct dht_node *n, struct search *s)
 {
     struct search_node *sn = s->queue;
@@ -375,6 +384,7 @@ static void search_complete(struct dht_node *n, struct search *s)
     free(s);
 }
 
+// 获得随机的节点
 static struct bucket_entry *get_random_node(struct dht_node *n)
 {
     struct bucket *b = n->buckets;
@@ -398,6 +408,7 @@ static struct bucket_entry *get_random_node(struct dht_node *n)
     return &b->nodes[r];
 }
 
+// 搜索进度
 static void search_progress(struct dht_node *n, struct search *s,
                             const struct timeval *now)
 {
@@ -444,17 +455,17 @@ static void search_progress(struct dht_node *n, struct search *s,
         args = bvalue_new_dict();
         v = bvalue_new_string(s->id, 20);
         switch (s->search_type) {
-        case FIND_NODE:
+        case FIND_NODE: // 查找节点
             bvalue_dict_set(args, "target", v);
             send_query(n, "find_node", s->tid, args,
                        (struct sockaddr *)&sn->addr, sn->addrlen);
             break;
-        case GET_PEERS:
+        case GET_PEERS: // 获得对等端
             bvalue_dict_set(args, "info_hash", v);
             send_query(n, "get_peers", s->tid, args,
                        (struct sockaddr *)&sn->addr, sn->addrlen);
             break;
-        case GET:
+        case GET: // 获取
             bvalue_dict_set(args, "target", v);
             send_query(n, "get", s->tid, args,
                        (struct sockaddr *)&sn->addr, sn->addrlen);
@@ -490,6 +501,7 @@ static void search_progress(struct dht_node *n, struct search *s,
     timeradd(now, &search_iteration_timeout, &s->next_query);
 }
 
+// 节点搜索
 int dht_node_search(struct dht_node *n, const unsigned char id[20],
                     int search_type,
                     search_complete_t callback, void *opaque,
@@ -533,6 +545,7 @@ int dht_node_search(struct dht_node *n, const unsigned char id[20],
     return 0;
 }
 
+// 取消节点
 void dht_node_cancel(struct dht_node *n, dht_search_t handle)
 {
     struct search *s = handle;
@@ -551,6 +564,7 @@ void dht_node_cancel(struct dht_node *n, dht_search_t handle)
     search_complete(n, s);
 }
 
+// 转存节点的桶
 void dht_node_dump_buckets(struct dht_node *n)
 {
     struct bucket *b = n->buckets;
@@ -574,8 +588,10 @@ void dht_node_dump_buckets(struct dht_node *n)
     }
 }
 
+// CRC32校验
 uint32_t crc32c(const unsigned char *data, size_t len);
 
+// 计算ID前缀
 static uint32_t compute_id_prefix(int family, unsigned char *ip, int r)
 {
     uint32_t ret = 0;
@@ -606,6 +622,7 @@ static uint32_t compute_id_prefix(int family, unsigned char *ip, int r)
     return ret;
 }
 
+// 有效的ID前缀
 static int is_prefix_valid(const unsigned char *id, const struct sockaddr *addr,
                            socklen_t addrlen)
 {
@@ -655,10 +672,12 @@ static int is_prefix_valid(const unsigned char *id, const struct sockaddr *addr,
            (((prefix >> 8) & 0xf8) == (id[2] & 0xf8));
 }
 
+// 引导已完成
 static void bootstrap_done(struct dht_node *n,
                            const struct search_node *nodes,
                            void *opaque);
 
+// 更新前缀
 static void update_prefix(struct dht_node *n, int notify)
 {
     uint32_t prefix;
@@ -719,6 +738,7 @@ static void update_prefix(struct dht_node *n, int notify)
         n->bootstrap_cb(0, n->bootstrap_priv);
 }
 
+// 引导已完成
 static void bootstrap_done(struct dht_node *n,
                            const struct search_node *nodes,
                            void *opaque)
@@ -739,6 +759,7 @@ static void bootstrap_done(struct dht_node *n,
         n->bootstrap_cb(1, n->bootstrap_priv);
 }
 
+// 节点初始化
 int dht_node_init(struct dht_node *n, const unsigned char *id,
                   node_output_t output, void *opaque)
 {
@@ -778,15 +799,17 @@ int dht_node_init(struct dht_node *n, const unsigned char *id,
     return 0;
 }
 
+// 引导主机结构
 static const struct {
-    const char *hostname;
-    int port;
+    const char *hostname; // 主机域名
+    int port; // 端口
 } bootstrap_hosts[] = {
-    { "dht.transmissionbt.com", 6881 },
-    { "router.utorrent.com", 6881 },
-    { "router.bittorrent.com", 6881 },
+    { "dht.transmissionbt.com", 6881 }, // 预置主机1
+    { "router.utorrent.com", 6881 }, // 预置主机2
+    { "router.bittorrent.com", 6881 }, // 预置主机3
 };
 
+// 启动节点s
 int dht_node_start(struct dht_node *n)
 {
     TRACE(("Starting node %s\n", hex(n->id)));
@@ -840,6 +863,7 @@ int dht_node_start(struct dht_node *n)
     return 0;
 }
 
+// 获得桶
 static struct bucket *get_bucket(struct dht_node *n, const unsigned char *id)
 {
     struct bucket *b = n->buckets;
@@ -850,6 +874,7 @@ static struct bucket *get_bucket(struct dht_node *n, const unsigned char *id)
     return b;
 }
 
+// 获得桶的条目
 static struct bucket_entry *get_bucket_entry(struct dht_node *n,
                                              const unsigned char *id)
 {
@@ -864,6 +889,7 @@ static struct bucket_entry *get_bucket_entry(struct dht_node *n,
     return NULL;
 }
 
+// 低比特位
 static int lowbit(const unsigned char *id)
 {
     int i, j;
@@ -881,6 +907,7 @@ static int lowbit(const unsigned char *id)
     return 8 * i + j;
 }
 
+// 桶中间
 static int bucket_middle(struct bucket *b, unsigned char *id)
 {
     int bit1 = lowbit(b->first);
@@ -896,6 +923,7 @@ static int bucket_middle(struct bucket *b, unsigned char *id)
     return 0;
 }
 
+// 随机的桶
 static void bucket_random(struct bucket *b, unsigned char *id)
 {
     int bit1 = lowbit(b->first);
@@ -918,6 +946,7 @@ static void bucket_random(struct bucket *b, unsigned char *id)
         id[i] = r[i];
 }
 
+// 桶的垃圾回收
 static void bucket_gc(struct dht_node *n, struct bucket *b,
                       const struct timeval *now)
 {
@@ -955,6 +984,7 @@ static void bucket_gc(struct dht_node *n, struct bucket *b,
     }
 }
 
+// 添加节点
 static void add_node(struct dht_node *n, const unsigned char *id,
                      const struct sockaddr *src, socklen_t addrlen)
 {
@@ -1027,6 +1057,7 @@ static void add_node(struct dht_node *n, const unsigned char *id,
     }
 }
 
+// 获得搜索
 static struct search *get_search(struct dht_node *n, uint16_t tid)
 {
     struct search *s = n->searches.first;
@@ -1040,6 +1071,7 @@ static struct search *get_search(struct dht_node *n, uint16_t tid)
     return NULL;
 }
 
+// 添加已完成的节点IPv4
 static void add_compact_nodes(struct search *s, const unsigned char *nodes,
                               size_t nodes_len)
 {
@@ -1057,6 +1089,7 @@ static void add_compact_nodes(struct search *s, const unsigned char *nodes,
     }
 }
 
+// 添加已完成的节点IPv6
 static void add_compact_nodes6(struct search *s, const unsigned char *nodes6,
                                size_t nodes6_len)
 {
@@ -1075,7 +1108,7 @@ static void add_compact_nodes6(struct search *s, const unsigned char *nodes6,
     }
 }
 
-
+// 获得搜索节点
 static struct search_node *get_search_node(struct search *s,
                                            const unsigned char *id)
 
@@ -1091,6 +1124,7 @@ static struct search_node *get_search_node(struct search *s,
     return NULL;
 }
 
+// 设置搜索节点的token
 static void search_node_set_token(struct search_node *sn,
                                   const unsigned char *token,
                                   size_t len)
@@ -1103,6 +1137,7 @@ static void search_node_set_token(struct search_node *sn,
     sn->token_len = len;
 }
 
+// 设置搜索节点的值
 static void search_node_set_values(struct search_node *sn,
                                    const struct bvalue *list)
 {
@@ -1126,6 +1161,7 @@ static void search_node_set_values(struct search_node *sn,
     }
 }
 
+// 设置搜索节点的v值
 static void search_node_set_v(struct search_node *sn, const struct bvalue *v)
 {
     unsigned char flattened[1000];
@@ -1139,6 +1175,7 @@ static void search_node_set_v(struct search_node *sn, const struct bvalue *v)
     sn->v = bdecode_buf(flattened, rc);
 }
 
+// 响应处理
 static void handle_response(struct dht_node *n, struct bvalue *dict,
                             const struct sockaddr *src, socklen_t addrlen)
 {
@@ -1232,6 +1269,7 @@ static void handle_response(struct dht_node *n, struct bvalue *dict,
     }
 }
 
+// 错误处理
 static void handle_error(struct dht_node *n, struct bvalue *dict,
                          const struct sockaddr *src, socklen_t addrlen)
 {
@@ -1292,6 +1330,7 @@ static void handle_error(struct dht_node *n, struct bvalue *dict,
 #define WANT_N4 0x1
 #define WANT_N6 0x2
 
+// 字典设置节点
 static int dict_set_nodes(struct dht_node *n, const unsigned char *id,
                           struct bvalue *ret, int want)
 {
@@ -1344,6 +1383,7 @@ static int dict_set_nodes(struct dht_node *n, const unsigned char *id,
     return 0;
 }
 
+// 字典设置对等端
 static int dict_set_peers(struct dht_node *n, const unsigned char *info_hash,
                           struct bvalue *ret)
 {
@@ -1374,6 +1414,7 @@ static int dict_set_peers(struct dht_node *n, const unsigned char *info_hash,
     return 0;
 }
 
+// 构造 Token签名
 static int make_token_signature(const struct sockaddr *addr, socklen_t addrlen,
                                 time_t t,
                                 const unsigned char *secret,
@@ -1412,6 +1453,7 @@ static int make_token_signature(const struct sockaddr *addr, socklen_t addrlen,
     return 0;
 }
 
+// 字典设置 Token
 static int dict_set_token(struct dht_node *n, const struct sockaddr *addr,
                           socklen_t addrlen, struct bvalue *ret)
 {
@@ -1430,6 +1472,7 @@ static int dict_set_token(struct dht_node *n, const struct sockaddr *addr,
     return 0;
 }
 
+// 有效的 Token
 static int is_token_valid(struct dht_node *n, const unsigned char *token,
                           const struct sockaddr *addr, socklen_t addrlen)
 {
@@ -1454,6 +1497,7 @@ static int is_token_valid(struct dht_node *n, const unsigned char *token,
     return 1;
 }
 
+// 添加节点
 static int add_peer(struct dht_node *n, const unsigned char *info_hash,
                     int port, int implied_port,
                     const struct sockaddr *addr, socklen_t addrlen)
@@ -1542,6 +1586,7 @@ static int args_get_want(const struct bvalue *args,
     return -1;
 }
 
+// 查找节点的处理
 static void handle_find_node(struct dht_node *n,
                              const unsigned char *tid, size_t tid_len,
                              const struct bvalue *args,
@@ -1570,6 +1615,7 @@ static void handle_find_node(struct dht_node *n,
     send_response(n, tid, tid_len, ret, src, addrlen);
 }
 
+// 获得对等端的处理
 static void handle_get_peers(struct dht_node *n,
                              const unsigned char *tid, size_t tid_len,
                              const struct bvalue *args,
@@ -1600,6 +1646,7 @@ static void handle_get_peers(struct dht_node *n,
     send_response(n, tid, tid_len, ret, src, addrlen);
 }
 
+// 发布到对等端的处理
 static void handle_announce_peer(struct dht_node *n,
                                  const unsigned char *tid, size_t tid_len,
                                  const struct bvalue *args,
@@ -1630,6 +1677,7 @@ static void handle_announce_peer(struct dht_node *n,
     send_response(n, tid, tid_len, NULL, src, addrlen);
 }
 
+// 字典设置放置项
 static int dict_set_put_item(struct dht_node *n, const unsigned char *hash,
                              struct bvalue *ret)
 {
@@ -1660,6 +1708,7 @@ static int dict_set_put_item(struct dht_node *n, const unsigned char *hash,
     return 0;
 }
 
+// 获取的处理
 static void handle_get(struct dht_node *n,
                        const unsigned char *tid, size_t tid_len,
                        const struct bvalue *args,
@@ -1690,6 +1739,7 @@ static void handle_get(struct dht_node *n,
     send_response(n, tid, tid_len, ret, src, addrlen);
 }
 
+// 添加放置项
 static int add_put_item(struct dht_node *n,
                         const unsigned char hash[20],
                         int seq,
@@ -1735,6 +1785,7 @@ static int add_put_item(struct dht_node *n,
     return 0;
 }
 
+// 验证值
 static int verify_value(const struct bvalue *val,
                         const unsigned char *salt, size_t salt_len,
                         int seq,
@@ -1766,6 +1817,7 @@ static int verify_value(const struct bvalue *val,
     return ed25519_verify(sig, buf + 1, rc - 2, k);
 }
 
+// 放置的处理
 static void handle_put(struct dht_node *n,
                        const unsigned char *tid, size_t tid_len,
                        const struct bvalue *args,
@@ -1877,6 +1929,7 @@ static void handle_put(struct dht_node *n,
     send_response(n, tid, tid_len, NULL, src, addrlen);
 }
 
+// 查询的处理
 static void handle_query(struct dht_node *n, struct bvalue *dict,
                          const struct sockaddr *src, socklen_t addrlen)
 {
@@ -1938,9 +1991,11 @@ static void handle_query(struct dht_node *n, struct bvalue *dict,
     }
 }
 
+// 转存16进制数
 void hexdump(const unsigned char *buf, size_t len, unsigned int indent,
              int (*print)(const char *fmt, ...));
 
+// 节点输入
 void dht_node_input(struct dht_node *n, const unsigned char *data, size_t len,
                     const struct sockaddr *src, socklen_t addrlen)
 {
@@ -1982,11 +2037,13 @@ release:
     bvalue_free(dict);
 }
 
+// Ping节点
 void dht_node_ping(struct dht_node *n, struct sockaddr *dest, socklen_t addrlen)
 {
     send_query(n, "ping", n->tid++, NULL, dest, addrlen);
 }
 
+// 发布到节点
 void dht_node_announce(struct dht_node *n, const unsigned char *info_hash,
                        const struct search_node *nodes,
                        int implied_port, int port)
@@ -2020,6 +2077,7 @@ void dht_node_announce(struct dht_node *n, const unsigned char *info_hash,
     }
 }
 
+// 节点放置不可变值
 void dht_node_put_immutable(struct dht_node *n,
                             const struct search_node *nodes,
                             const struct bvalue *val)
@@ -2046,6 +2104,7 @@ void dht_node_put_immutable(struct dht_node *n,
     }
 }
 
+// 节点方式可变值
 void dht_node_put_mutable(struct dht_node *n,
                           const struct search_node *nodes,
                           const unsigned char k[32],
@@ -2100,6 +2159,7 @@ next:
     }
 }
 
+// 刷新已完成
 static void refresh_done(struct dht_node *n,
                          const struct search_node *nodes,
                          void *opaque)
@@ -2114,6 +2174,7 @@ static void refresh_done(struct dht_node *n,
     TRACE(("Refresh done\n"));
 }
 
+// 节点超时
 void dht_node_timeout(struct dht_node *n, struct timeval *tv)
 {
     struct timeval now, exp;
@@ -2162,6 +2223,7 @@ void dht_node_timeout(struct dht_node *n, struct timeval *tv)
  *  - Start new search iterations
  *  - Garbage collect expired storage
  */
+// 节点工作
 void dht_node_work(struct dht_node *n)
 {
     struct timeval now;
@@ -2238,6 +2300,7 @@ void dht_node_work(struct dht_node *n)
     }
 }
 
+// 清理节点
 void dht_node_cleanup(struct dht_node *n)
 {
     struct bucket *b = n->buckets;
@@ -2280,6 +2343,7 @@ void dht_node_cleanup(struct dht_node *n)
     }
 }
 
+// 保存节点
 struct bvalue *dht_node_save(const struct dht_node *n)
 {
     struct bvalue *v, *dict;
@@ -2330,6 +2394,7 @@ struct bvalue *dht_node_save(const struct dht_node *n)
     return dict;
 }
 
+// 恢复节点
 int dht_node_restore(const struct bvalue *dict, struct dht_node *n)
 {
     const struct bvalue *v;
@@ -2430,6 +2495,7 @@ release:
     return ret;
 }
 
+// 节点设置引导回调函数
 void dht_node_set_bootstrap_callback(struct dht_node *n,
                                      bootstrap_status_t callback,
                                      void *opaque)

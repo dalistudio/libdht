@@ -12,6 +12,7 @@
 
 #include "time.h"
 
+// 重置IP计算
 void ip_counter_reset(struct ip_counter *c)
 {
     struct ip_counter_entry *e = c->entries;
@@ -28,6 +29,7 @@ void ip_counter_reset(struct ip_counter *c)
     gettimeofday(&c->heat_start, NULL);
 }
 
+// 初始化IP计算
 void ip_counter_init(struct ip_counter *c)
 {
     c->total = 0;
@@ -35,6 +37,7 @@ void ip_counter_init(struct ip_counter *c)
     gettimeofday(&c->heat_start, NULL);
 }
 
+// 更新IP计算
 int ip_counter_update(struct ip_counter *c, const unsigned char *ip,
                       size_t len)
 {
@@ -69,6 +72,7 @@ int ip_counter_update(struct ip_counter *c, const unsigned char *ip,
     return 0;
 }
 
+// 当前IP计算
 int ip_counter_current(struct ip_counter *c, unsigned char ip[18])
 {
     struct ip_counter_entry *e = c->entries;

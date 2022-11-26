@@ -11,12 +11,13 @@
 #include <dht/utils.h>
 #include <dht/peers.h>
 
+// 获得对等端的上下文结构
 struct get_peers_context
 {
-    unsigned char info_hash[20];
-    int announce;
-    int port;
-    get_peers_callback callback;
+    unsigned char info_hash[20]; // 种子散列值
+    int announce; // 发布
+    int port; // 端口
+    get_peers_callback callback; // get 对等端的回调函数
     void *opaque;
 };
 
@@ -70,6 +71,7 @@ static void gp_complete(struct dht_node *n,
     free(ctx);
 }
 
+// 获得对等端
 int dht_get_peers(struct dht_node *node, const unsigned char info_hash[20],
                   get_peers_callback callback, void *opaque,
                   dht_search_t *handle)
@@ -86,6 +88,7 @@ int dht_get_peers(struct dht_node *node, const unsigned char info_hash[20],
     ctx->callback = callback;
     ctx->opaque = opaque;
 
+    // 搜索节点
     if (dht_node_search(node, info_hash, GET_PEERS, gp_complete, ctx, &h)) {
         free(ctx);
         return -1;
@@ -97,6 +100,7 @@ int dht_get_peers(struct dht_node *node, const unsigned char info_hash[20],
     return 0;
 }
 
+// 发布到对等端
 int dht_announce_peer(struct dht_node *node, const unsigned char info_hash[20],
                       int port, get_peers_callback callback, void *opaque,
                       dht_search_t *handle)
@@ -114,6 +118,7 @@ int dht_announce_peer(struct dht_node *node, const unsigned char info_hash[20],
     ctx->callback = callback;
     ctx->opaque = opaque;
 
+    // 搜索节点
     if (dht_node_search(node, info_hash, GET_PEERS, gp_complete, ctx, &h)) {
         free(ctx);
         return -1;
